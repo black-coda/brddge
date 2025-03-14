@@ -1,0 +1,2 @@
+C:/Users/monda/OneDrive/Desktop/workspace/brddge/android/app/.cxx/Debug/184o6p2c/x86/CMakeFiles/edit_cache.dir
+C:/Users/monda/OneDrive/Desktop/workspace/brddge/android/app/.cxx/Debug/184o6p2c/x86/CMakeFiles/rebuild_cache.dir
