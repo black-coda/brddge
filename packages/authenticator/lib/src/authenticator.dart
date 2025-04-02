@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer' show log;
 
 import 'package:auth_client_interface/auth_client_interface.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// {@template authenticator}
@@ -19,7 +20,8 @@ class Authenticator implements AuthClientInterface {
   ///  Supabase backend.
   final SupabaseClient supabase;
 
-  late StreamController<AuthUserModel> _userController;
+  // late StreamController<AuthUserModel> _userController;
+  late final BehaviorSubject<AuthUserModel> _userController;
 
   /// Initializes the authentication process by setting up the user controller
   /// and listening for authentication state changes.
@@ -28,12 +30,14 @@ class Authenticator implements AuthClientInterface {
   /// listens to authentication state changes from Supabase. When the user signs
   /// in, the corresponding event is handled.
   void initProcess() {
-    _userController = StreamController<AuthUserModel>.broadcast();
+    _userController =
+        BehaviorSubject<AuthUserModel>.seeded(AuthUserModel.unauthenticated());
 
     supabase.auth.onAuthStateChange.listen((data) {
       final event = data.event;
+      log('Auth event: $event');
 
-      if (event == AuthChangeEvent.signedIn && data.session != null) {
+      if (event == AuthChangeEvent.initialSession && data.session != null) {
         _userController.add(
           AuthUserModel(
             user: data.session!.user,
@@ -41,8 +45,7 @@ class Authenticator implements AuthClientInterface {
             authStatus: AuthStatus.authenticated,
           ),
         );
-      }
-      if (event == AuthChangeEvent.initialSession && data.session != null) {
+      } else if (event == AuthChangeEvent.signedIn && data.session != null) {
         _userController.add(
           AuthUserModel(
             user: data.session!.user,
@@ -78,10 +81,19 @@ class Authenticator implements AuthClientInterface {
       );
     } on AuthApiException catch (error, stackTrace) {
       log(
-        '${error.statusCode}-${error.message}',
+        '${error.statusCode}-${error.message}-${error.code}',
         name: 'Authenticator: loginWithEmail',
       );
-      Error.throwWithStackTrace(LogInWithEmailFailure(error), stackTrace);
+
+      Error.throwWithStackTrace(
+        LogInWithEmailFailure.fromCode(error.code!, error),
+        stackTrace,
+      );
+    } catch (error, stackTrace) {
+      Error.throwWithStackTrace(
+        LogInWithEmailFailure.unknown(error),
+        stackTrace,
+      );
     }
   }
 
@@ -117,10 +129,19 @@ class Authenticator implements AuthClientInterface {
       );
     } on AuthApiException catch (error, stackTrace) {
       log(
-        '${error.statusCode}-${error.message}',
+        '${error.statusCode}-${error.message}-${error.code}',
         name: 'Authenticator: loginWithEmail',
       );
-      Error.throwWithStackTrace(RegisterWithEmailFailure(error), stackTrace);
+
+      Error.throwWithStackTrace(
+        RegisterWithEmailFailure.fromCode(error.code!, error),
+        stackTrace,
+      );
+    } catch (error, stackTrace) {
+      Error.throwWithStackTrace(
+        RegisterWithEmailFailure.unknown(error),
+        stackTrace,
+      );
     }
   }
 
@@ -149,5 +170,29 @@ class Authenticator implements AuthClientInterface {
   /// to release any resources it holds.
   void close() {
     _userController.close();
+  }
+
+  @override
+  Future<void> verifyOTP(OTPVerificationCredential credentials) async {
+    try {
+      final (otp, email) = credentials;
+      await supabase.auth.verifyOTP(
+        type: OtpType.signup,
+        token: otp,
+        email: email,
+      );
+    } on AuthApiException catch (error, stackTrace) {
+      log(
+        'Error verifying OTP: ${error.message}, Error code: ${error.code}',
+        stackTrace: stackTrace,
+      );
+      Error.throwWithStackTrace(
+        OTPVerificationFailure.fromCode(error.code!, error),
+        stackTrace,
+      );
+    } catch (e, stackTrace) {
+      log('Error verifying OTP: $e', stackTrace: stackTrace);
+      Error.throwWithStackTrace(OTPVerificationFailure.unknown(e), stackTrace);
+    }
   }
 }

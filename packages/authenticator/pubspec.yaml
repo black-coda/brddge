@@ -12,6 +12,7 @@ dependencies:
     path: ../auth_client_interface
   flutter:
     sdk: flutter
+  rxdart: ^0.28.0
   supabase_flutter: ^2.8.4
   
 

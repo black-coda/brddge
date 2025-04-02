@@ -4,16 +4,36 @@ enum AppStatus {
   authenticated(),
   unauthenticated(),
   onBoardingRequired(),
-  initial()
+  initial();
+
+  static AppStatus fromString(String authStatus) {
+    return switch (authStatus) {
+      'authenticated' => AppStatus.authenticated,
+      'unauthenticated' => AppStatus.unauthenticated,
+      'onBoardingRequired' => AppStatus.onBoardingRequired,
+      _ => AppStatus.initial,
+    };
+  }
 }
 
 @immutable
-final class AppState extends Equatable {
+class AppState extends Equatable {
   const AppState({
     required this.user,
     required this.status,
     this.isLoading = false,
   });
+
+  factory AppState.fromMap(Map<String, dynamic> map) {
+    return AppState(
+      user: AuthUserModel.fromMap(map['user'] as Map<String, dynamic>),
+      status: AppStatus.fromString(map['status'] as String),
+      isLoading: map['isLoading'] as bool,
+    );
+  }
+
+  factory AppState.fromJson(String source) =>
+      AppState.fromMap(json.decode(source) as Map<String, dynamic>);
 
   AppState.initial()
       : this(
@@ -26,7 +46,7 @@ final class AppState extends Equatable {
   final bool isLoading;
 
   @override
-  List<Object?> get props => [user, status];
+  List<Object?> get props => [user, status, isLoading];
 
   AppState copyWith({
     AuthUserModel? user,
@@ -39,4 +59,14 @@ final class AppState extends Equatable {
       isLoading: isLoading ?? this.isLoading,
     );
   }
+
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'user': user.toMap(),
+      'status': status.toString(),
+      'isLoading': isLoading,
+    };
+  }
+
+  String toJson() => json.encode(toMap());
 }

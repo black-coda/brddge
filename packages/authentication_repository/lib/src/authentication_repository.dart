@@ -14,7 +14,8 @@ class AuthenticationRepository {
   /// Stream of [AuthUserModel] which will emit the current user when the
   /// authentication state changes.
 
-  Stream<AuthUserModel> user() => _authClientInterface.currentUserStream;
+  Stream<AuthUserModel> get currentUserStream =>
+      _authClientInterface.currentUserStream;
 
   /// Sign in with email and password.
   ///
@@ -49,6 +50,12 @@ class AuthenticationRepository {
     PhoneAndPasswordCredential credentials,
   ) async =>
       _authClientInterface.signUpWithPhone(credentials);
+
+  /// OTP verification after registration
+  ///
+  /// Throws an [Exception] if the verification fails.
+  Future<void> verifyOTP(OTPVerificationCredential credentials) async =>
+      _authClientInterface.verifyOTP(credentials);
 
   /// close
   void close() {

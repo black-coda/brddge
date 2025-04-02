@@ -1,2 +1,2 @@
 export 'bloc/authentication_bloc.dart';
-export 'view/login_screen.dart';
+export 'view/view.dart';

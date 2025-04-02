@@ -1,4 +1,3 @@
-import 'package:brddge/app/app.dart';
 import 'package:brddge/counter/counter.dart';
 import 'package:flutter_test/flutter_test.dart';
 

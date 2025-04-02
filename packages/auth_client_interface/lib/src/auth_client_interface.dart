@@ -5,10 +5,13 @@ import 'package:auth_client_interface/auth_client_interface.dart';
 /// {@endtemplate}
 abstract class AuthenticationException implements Exception {
   /// {@macro authentication_exception}
-  const AuthenticationException(this.error);
+  const AuthenticationException(this.error, {this.errorMsg = ''});
 
   /// The error which was caught.
   final Object error;
+
+  /// The error message
+  final String errorMsg;
 }
 
 /// {@template log_in_with_email_failure}
@@ -16,7 +19,105 @@ abstract class AuthenticationException implements Exception {
 /// {@endtemplate}
 class LogInWithEmailFailure extends AuthenticationException {
   /// {@macro log_in_with_email_link_failure}
-  const LogInWithEmailFailure(super.error);
+  const LogInWithEmailFailure(super.error, {super.errorMsg});
+
+  /// Creates a `LogInWithEmailFailure` instance for an unknown error.
+  ///
+  /// This factory constructor is used when the specific cause of the error
+  /// is not identified. The [error] parameter provides additional details
+  /// about the unknown error.
+  factory LogInWithEmailFailure.unknown(Object error) {
+    return LogInWithEmailFailure(
+      error,
+      errorMsg: 'Unknown Error: Try again later or contact support.😔',
+    );
+  }
+
+  /// Create an authentication message
+  /// from a firebase authentication exception code.
+  factory LogInWithEmailFailure.fromCode(String code, Object error) {
+    switch (code) {
+      case 'invalid_credentials':
+        return LogInWithEmailFailure(
+          error,
+          errorMsg: 'Invalid email or password. Please try again.',
+        );
+
+      case 'user_not_found':
+        return LogInWithEmailFailure(
+          error,
+          errorMsg: 'Email is not found, please create an account.',
+        );
+
+      default:
+        return LogInWithEmailFailure.unknown(error);
+    }
+  }
+}
+
+/// Exception thrown when otp verification fails.
+///
+/// This exception is thrown when there is an error during the otp verification
+/// process.
+class OTPVerificationFailure extends AuthenticationException {
+  /// Represents a failure that occurs
+  /// during the otp verification process.
+  ///
+  /// This class extends a base error class and provides additional context
+  /// for errors specifically related to otp verification.
+  ///
+  /// [error] is the error message or object that describes the failure.
+  const OTPVerificationFailure(super.error, {super.errorMsg});
+
+  /// Factory constructor for creating a [OTPVerificationFailure] instance
+  /// based on a specific error code.
+  ///
+  /// Takes a [String] [code] and an [Object] [error] as parameters.
+  ///
+  /// The [code] parameter is used to determine the specific type of error
+  /// that occurred during the OTP verification process.
+  ///
+  /// The [error] parameter provides additional details about the error.
+  ///
+  /// Returns an [OTPVerificationFailure] instance with a corresponding
+  /// error message based on the provided [code].
+  ///
+  /// If the [code] does not match any known error codes, an unknown error
+  /// message is returned.
+  factory OTPVerificationFailure.fromCode(String code, Object error) {
+    switch (code) {
+      case 'otp_expired':
+        return OTPVerificationFailure(
+          error,
+          errorMsg:
+              'Invalid OTP or OTP code has expired. Please request a new one.',
+        );
+      case 'otp_disabled':
+        return OTPVerificationFailure(
+          error,
+          errorMsg: 'OTP verification is disabled for this user.',
+        );
+      case 'over_email_send_rate_limit':
+        return OTPVerificationFailure(
+          error,
+          errorMsg: 'Email send rate limit exceeded. Please try again later.',
+        );
+      default:
+        return OTPVerificationFailure.unknown(error);
+    }
+  }
+
+  /// Factory constructor for creating a [OTPVerificationFailure] instance
+  /// when the error cause is unknown.
+  ///
+  /// Takes an [Object] [error] as a parameter, which represents the error
+  /// that occurred.
+  factory OTPVerificationFailure.unknown(Object error) {
+    return OTPVerificationFailure(
+      error,
+      errorMsg: 'Unknown Error',
+    );
+  }
 }
 
 /// Exception thrown when a registration with email fails.
@@ -24,13 +125,48 @@ class LogInWithEmailFailure extends AuthenticationException {
 /// This exception is thrown when there is an error during the registration
 /// process using an email address.
 class RegisterWithEmailFailure extends AuthenticationException {
-  /// Represents a failure that occurs during the registration process with email.
+  /// Represents a failure that occurs
+  /// during the registration process with email.
   ///
   /// This class extends a base error class and provides additional context
   /// for errors specifically related to email registration.
   ///
   /// [error] is the error message or object that describes the failure.
-  const RegisterWithEmailFailure(super.error);
+  const RegisterWithEmailFailure(super.error, {super.errorMsg});
+
+  /// Create an authentication message
+  /// from a firebase authentication exception code.
+  /// https://pub.dev/documentation/firebase_auth/latest/firebase_auth/FirebaseAuth/createUserWithEmailAndPassword.html
+  factory RegisterWithEmailFailure.fromCode(String code, Object error) {
+    switch (code) {
+      case 'email_exists':
+        return RegisterWithEmailFailure(
+          error,
+          errorMsg: 'Email address already exists in the system',
+        );
+      case 'email_not_confirmed':
+        return RegisterWithEmailFailure(
+          error,
+          errorMsg:
+              'Signing in is not allowed for this user as the email address is'
+              ' not confirmed.',
+        );
+      default:
+        return RegisterWithEmailFailure.unknown(error);
+    }
+  }
+
+  /// Factory constructor for creating a [RegisterWithEmailFailure] instance
+  /// when the error cause is unknown.
+  ///
+  /// Takes an [Object] [error] as a parameter, which represents the error
+  /// that occurred.
+  factory RegisterWithEmailFailure.unknown(Object error) {
+    return RegisterWithEmailFailure(
+      error,
+      errorMsg: 'Unknown Error',
+    );
+  }
 }
 
 /// Exception thrown when a registration with phone fails.
@@ -38,6 +174,13 @@ class RegisterWithEmailFailure extends AuthenticationException {
 /// This exception is thrown when there is an error during the registration
 /// process using a phone number.
 class RegisterWithPhoneFailure extends AuthenticationException {
+  /// Represents a failure that occurs
+  /// during the registration process with phone number.
+  ///
+  /// This class extends a base error class and provides additional context
+  /// for errors specifically related to phone number registration.
+  ///
+  /// [error] is the error message or object that describes the failure
   const RegisterWithPhoneFailure(super.error);
 }
 
@@ -109,6 +252,13 @@ abstract class AuthClientInterface {
   ///
   /// Throws an [AuthenticationException] if the sign-up fails.
   Future<void> signUpWithPhone(PhoneAndPasswordCredential credentials);
+
+  /// OTP Verification after registration
+  ///
+  /// Takes a [OTPVerificationCredential] object as a parameter.
+  ///
+  /// Throws an [AuthenticationException] if the verification fails.
+  Future<void> verifyOTP(OTPVerificationCredential credentials);
 
   /// dispose the stream used
   ///

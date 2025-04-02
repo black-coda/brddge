@@ -10,3 +10,9 @@ typedef PhoneAndPasswordCredential = (
   String phone,
   String password,
 );
+
+/// A typedef for otp credentials.
+typedef OTPVerificationCredential = (
+  String otp,
+  String email,
+);
