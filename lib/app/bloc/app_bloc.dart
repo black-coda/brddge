@@ -122,7 +122,9 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   }
 
   FutureOr<void> _onAppAuthenticationChanged(
-      AppAuthenticationChanged event, Emitter<AppState> emit) {
+    AppAuthenticationChanged event,
+    Emitter<AppState> emit,
+  ) {
     final user = event.user;
     emit(
       state.copyWith(

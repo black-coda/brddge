@@ -3,6 +3,7 @@ import 'dart:developer' show log;
 import 'package:brddge/app/app.dart';
 import 'package:brddge/auth/auth.dart';
 import 'package:brddge/design/design.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/gestures.dart' show TapGestureRecognizer;
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -50,15 +51,88 @@ class _OnboardScreenState extends State<OnboardScreen> {
   Widget build(BuildContext context) {
     final heightOfPageView = MediaQuery.sizeOf(context).height * 0.45;
     log('Current Page Index: $heightOfPageView');
+
     return Scaffold(
       body: Stack(
         alignment: Alignment.center,
         children: [
-          const Align(
-            child: SizedBox(
-              child: Placeholder(),
+          Positioned(
+            top: 340,
+            right: 75,
+            child: _buildImage(height: 120, width: 80),
+          )
+              .animate()
+              .slideX(
+                duration: 1200.ms,
+                begin: -2,
+                end: 0,
+                curve: Curves.easeInBack,
+              )
+              .fadeIn(
+                duration: 1200.ms,
+              ),
+          Positioned(
+            top: 105,
+            left: 80,
+            child: _buildImage(
+              height: 120,
+              width: 80,
+              assetPath:
+                  'https://images.unsplash.com/photo-1523580494863-6f3031224c94',
             ),
-          ),
+          )
+              .animate()
+              .slideX(
+                duration: 1200.ms,
+                begin: -2,
+                end: 0,
+                curve: Curves.easeInBack,
+              )
+              .fadeIn(
+                duration: 1200.ms,
+              ),
+          Positioned(
+            top: 280,
+            left: 60,
+            child: _buildImage(
+              borderRadius: 80,
+              height: 200,
+              width: 150,
+              assetPath:
+                  'https://images.unsplash.com/photo-1540575467063-178a50c2df87',
+            ),
+          )
+              .animate()
+              .slideX(
+                duration: 1200.ms,
+                begin: 2,
+                end: 0,
+                curve: Curves.easeInBack,
+              )
+              .fadeIn(
+                duration: 1200.ms,
+              ),
+          Positioned(
+            top: 100,
+            right: 70,
+            child: _buildImage(
+              borderRadius: 80,
+              height: 200,
+              width: 150,
+              assetPath:
+                  'https://images.unsplash.com/photo-1515169067868-5387ec356754',
+            ),
+          )
+              .animate()
+              .slideX(
+                duration: 1200.ms,
+                begin: 2,
+                end: 0,
+                curve: Curves.easeInBack,
+              )
+              .fadeIn(
+                duration: 1200.ms,
+              ),
           Align(
             alignment: Alignment.bottomCenter,
             child: Container(
@@ -161,6 +235,32 @@ class _OnboardScreenState extends State<OnboardScreen> {
                 : const SizedBox(),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildImage({
+    String? assetPath,
+    double? width,
+    double? height,
+    double? borderRadius,
+  }) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(borderRadius ?? 100),
+      // Large value for full curve
+      child: CachedNetworkImage(
+        imageUrl: assetPath ??
+            'https://images.unsplash.com/photo-1631888721488-9925a85849ec',
+        width: width ?? 100,
+        height: height ?? 120,
+        fit: BoxFit.cover,
+        placeholder: (context, url) => const SizedBox(
+          height: 120,
+          width: 100,
+          child: Center(
+            child: CircularProgressIndicator(),
+          ),
+        ),
       ),
     );
   }

@@ -34,6 +34,7 @@ void main() async {
       AuthenticationRepository(authClientInterface: authenticator);
   final appPreferenceRepository = AppPreferenceRepository(
     preferences: await sharedPref,
+    supabaseClient: supabase,
   );
 
   await bootstrap(
